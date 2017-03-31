@@ -331,7 +331,7 @@ class Hosts(object):
             return {'result': 'failed',
                     'message': 'Cannot read: file {0}.'.format(import_file_path)}
 
-    def add(self, entries=None, force=False):
+   def add(self, entries=None, force=False):
         """
         Add instances of HostsEntry to the instance of Hosts.
         :param entries: A list of instances of HostsEntry
@@ -345,6 +345,7 @@ class Hosts(object):
         replaced_count = 0
         import_entries = []
         existing_addresses = [x.address for x in self.entries if x.address]
+        existing_names = [x.names for x in self.entries if x.names]
         existing_names = []
         for item in self.entries:
             if item.names:
@@ -364,10 +365,12 @@ class Hosts(object):
                     import_entries.append(entry)
             elif entry.address in existing_addresses:
                 if not force:
-                    duplicate_count += 1
+                    for name in entry.names:
+                        if name in existing_names:
+                            duplicate_count += 1
                 elif force:
-                    self.remove_all_matching(address=entry.address)
-                    replaced_count += 1
+                    for name in entry.names:
+                        self.remove_all_matching(name=name)
                     import_entries.append(entry)
             elif set(entry.names).intersection(existing_names):
                 if not force:
